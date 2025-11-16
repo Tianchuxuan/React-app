@@ -1,72 +1,164 @@
-import React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useEffect, useState, useContext } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
+import api from '../api/axiosInstance';
 
 const BlogDetail = () => {
   const { id } = useParams(); 
+  const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
   
-  const blogPosts = [
-    {
-      id: 1,
-      title: "React Hooks 完全指南",
-      content: `
-        <h3>什么是 React Hooks？</h3>
-        <p>React Hooks 是 React 16.8 引入的新特性，允许开发者在函数组件中使用状态和生命周期方法，无需编写类组件。</p>
-        
-        <h3>useState 基础用法</h3>
-        <p>useState 用于在函数组件中声明状态变量：</p>
-        <pre className="bg-gray-100 p-4 rounded my-4">
-const [count, setCount] = useState(0);
-        </pre>
-        <p>其中 count 是状态变量，setCount 是更新状态的函数。</p>
-        
-        <h3>useEffect 生命周期</h3>
-        <p>useEffect 可以模拟类组件的 componentDidMount、componentDidUpdate 和 componentWillUnmount：</p>
-        <pre className="bg-gray-100 p-4 rounded my-4">
-useEffect(() => {
-  // 组件挂载或更新时执行
-  document.title = \`Count: \${count}\`;
-  
-  // 组件卸载时执行
-  return () => {
-    console.log('组件卸载');
-  };
-}, [count]); // 仅在count变化时执行
-        </pre>
-      `,
-      date: "2024-03-15",
-      author: "开发者姓名"
-    }
-  ];
+  const [post, setPost] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [commentLoading, setCommentLoading] = useState(false);
 
- 
-  const post = blogPosts.find(item => item.id === parseInt(id)) || {
-    title: "博客不存在",
-    content: "<p>抱歉，该博客文章不存在。</p>",
-    date: "",
-    author: ""
+  
+  useEffect(() => {
+    const fetchBlogData = async () => {
+      try {
+        setLoading(true);
+        const res = await api.get(`/api/blog/${id}`);
+        setPost(res.data);
+        setComments(res.data.comments || []);
+        setError('');
+      } catch (err) {
+        setError('Failed to load blog post.');
+        console.error('Blog Detail Error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBlogData();
+  }, [id]);
+
+  
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
+
+  
+  const handleCommentSubmit = async (e) => {
+    e.preventDefault();
+    if (!newComment.trim() || !user) return;
+
+    try {
+      setCommentLoading(true);
+      const res = await api.post(`/api/blog/${id}/comments`, {
+        body: newComment
+      });
+
+      
+      setComments([...comments, res.data]);
+      setNewComment(''); 
+    } catch (err) {
+      setError('Failed to submit comment.');
+      console.error('Comment Error:', err);
+    } finally {
+      setCommentLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="text-center py-12">Loading blog post...</div>;
+  }
+
+  if (error || !post) {
+    return (
+      <div className="text-center py-12 text-red-600">
+        {error || 'Blog post not found.'}
+        <button 
+          onClick={() => navigate('/blog')}
+          className="mt-4 text-blue-600 hover:underline"
+        >
+          Back to Blog List
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      <div className="max-w-3xl mx-auto">
-        <Link to="/blog" className="text-blue-600 hover:underline mb-6 inline-block">
-          ← 返回博客列表
-        </Link>
+    <div className="max-w-3xl mx-auto">
+      {/* Blog Post Content */}
+      <div className="bg-white p-8 rounded-xl shadow-md mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-4">{post.title}</h1>
         
-        <article className="bg-white p-8 rounded-lg shadow-md">
-          <h1 className="text-3xl font-bold mb-4 text-gray-800">{post.title}</h1>
-          
-          {post.date && (
-            <p className="text-gray-500 mb-6">
-              作者：{post.author} | 发布日期：{post.date}
-            </p>
-          )}
-          
-          <div 
-            className="prose max-w-none text-gray-700"
-            dangerouslySetInnerHTML={{ __html: post.content }}
-          />
-        </article>
+        <div className="text-sm text-gray-500 mb-6">
+          By {post.author.username} • {formatDate(post.createdAt)}
+        </div>
+        
+        <div className="text-gray-700 space-y-4">
+          {post.content.split('\n').map((paragraph, idx) => (
+            <p key={idx}>{paragraph}</p>
+          ))}
+        </div>
+      </div>
+
+      {/* Comments Section */}
+      <div className="bg-white p-8 rounded-xl shadow-md">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Comments ({comments.length})</h2>
+
+        {/* Comment Form (Authenticated Users Only) */}
+        {user ? (
+          <form onSubmit={handleCommentSubmit} className="mb-8">
+            <div className="mb-4">
+              <label htmlFor="comment" className="block text-gray-700 mb-2">
+                Add a Comment
+              </label>
+              <textarea
+                id="comment"
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                rows={4}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              ></textarea>
+            </div>
+            <button
+              type="submit"
+              disabled={commentLoading}
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors disabled:bg-gray-400"
+            >
+              {commentLoading ? 'Submitting...' : 'Post Comment'}
+            </button>
+          </form>
+        ) : (
+          <p className="mb-8 text-gray-600">
+            <a href="/login" className="text-blue-600 hover:underline">
+              Log in
+            </a> to leave a comment.
+          </p>
+        )}
+
+        {/* Comments List */}
+        {comments.length > 0 ? (
+          <div className="space-y-4">
+            {comments.map((comment) => (
+              <div key={comment._id} className="border-b border-gray-200 pb-4">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-medium text-gray-900">
+                    {comment.author.username}
+                  </span>
+                  <span className="text-sm text-gray-500">
+                    {formatDate(comment.createdAt)}
+                  </span>
+                </div>
+                <p className="text-gray-700">{comment.body}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-600">No comments yet. Be the first to comment!</p>
+        )}
       </div>
     </div>
   );

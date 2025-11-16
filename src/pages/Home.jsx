@@ -3,40 +3,54 @@ import { Link } from 'react-router-dom';
 
 const Home = () => {
   return (
-    <div className="container mx-auto px-4 py-12">
-      <section className="max-w-3xl mx-auto text-center">
-        <h1 className="text-4xl font-bold mb-6 text-gray-800">
-          Hello, I'm <span className="text-blue-600">TCX</span>
+    <div className="flex flex-col md:flex-row items-center gap-12">
+      {/* Intro Text */}
+      <div className="md:w-1/2">
+        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+          Hi, I'm tcx
         </h1>
         <p className="text-lg text-gray-600 mb-8">
-          A student from Shenyang Normal University passionate about coding and creating. Skilled in building beautiful and functional web applications with React and Tailwind CSS.
+          I build responsive, scalable web applications using modern technologies. 
+          Explore my projects, read my technical blog, or reach out to collaborate!
         </p>
-        <div className="flex flex-wrap justify-center gap-4">
+        <div className="flex flex-wrap gap-4">
           <Link 
-            to="/projects" 
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
+            to="/projects"
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
           >
-            View My Projects
+            View My Work
           </Link>
           <Link 
-            to="/contact" 
-            className="border border-blue-600 text-blue-600 px-6 py-3 rounded-lg hover:bg-blue-50 transition"
+            to="/contact"
+            className="bg-gray-200 text-gray-900 px-6 py-3 rounded-lg hover:bg-gray-300 transition-colors"
           >
-            Contact Me
+            Get In Touch
           </Link>
         </div>
-      </section>
+      </div>
 
-      <section className="mt-20">
-        <h2 className="text-3xl font-bold mb-8 text-center text-gray-800">My Skills</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
-          {['React', 'JavaScript', 'HTML/CSS', 'Tailwind CSS'].map((skill, index) => (
-            <div key={index} className="bg-white p-6 rounded-lg shadow text-center hover:shadow-md transition">
-              <p className="text-xl font-medium">{skill}</p>
+      {/* Skills Section */}
+      <div className="md:w-1/2 bg-gray-50 p-6 rounded-xl shadow">
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">My Tech Stack</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {[
+            { name: "React", icon: "⚛️" },
+            { name: "Node.js", icon: "🟢" },
+            { name: "Express", icon: "🚀" },
+            { name: "MongoDB", icon: "🍃" },
+            { name: "JavaScript", icon: "📜" },
+            { name: "Tailwind CSS", icon: "🎨" }
+          ].map((skill, idx) => (
+            <div 
+              key={idx} 
+              className="bg-white p-4 rounded-lg shadow-sm flex flex-col items-center"
+            >
+              <span className="text-2xl mb-2">{skill.icon}</span>
+              <span className="font-medium">{skill.name}</span>
             </div>
           ))}
         </div>
-      </section>
+      </div>
     </div>
   );
 };
