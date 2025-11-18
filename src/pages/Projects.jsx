@@ -37,7 +37,7 @@ const Projects = () => {
             rel="noopener noreferrer"
             style={{ color: 'blue', textDecoration: 'underline' }}
           >
-            View project
+            View
           </a>
         </div>
       ))}
