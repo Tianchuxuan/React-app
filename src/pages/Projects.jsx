@@ -14,7 +14,7 @@ const Projects = () => {
         setProjects(res.data);
         setLoading(false);
       } catch (err) {
-        setError('获取项目列表失败，请稍后再试');
+        setError('Failed to get the project list. Please try again later.');
         setLoading(false);
         console.error(err);
       }
@@ -22,7 +22,7 @@ const Projects = () => {
     fetchProjects();
   }, []);
 
-  if (loading) return <div>加载中...</div>;
+  if (loading) return <div>loading...</div>;
   if (error) return <div style={{ color: 'red' }}>{error}</div>;
 
   return (
@@ -37,7 +37,7 @@ const Projects = () => {
             rel="noopener noreferrer"
             style={{ color: 'blue', textDecoration: 'underline' }}
           >
-            查看项目
+            View project
           </a>
         </div>
       ))}
