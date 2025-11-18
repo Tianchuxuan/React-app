@@ -8,27 +8,30 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  
   useEffect(() => {
     const loadUser = () => {
       const token = localStorage.getItem('token');
       const userData = localStorage.getItem('user');
       if (token && userData) {
-        setUser(JSON.parse(userData));
+        try {
+          setUser(JSON.parse(userData));
+        } catch (err) {
+          console.error('Failed to parse user data:', err);
+          localStorage.removeItem('user');
+          setUser(null);
+        }
       }
       setLoading(false);
     };
     loadUser();
   }, []);
 
-  
   const register = async (username, email, password) => {
     try {
       setError('');
       const res = await api.post('/api/users/register', { username, email, password });
       const { token, user } = res.data;
-      
-      
+
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       setUser(user);
@@ -40,17 +43,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  
   const login = async (email, password) => {
     try {
       setError('');
       const res = await api.post('/api/users/login', { email, password });
       const { token, user } = res.data;
-      
-      
+
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       setUser(user);
+
+      
+      window.location.href = '/admin'; 
       return true;
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid email or password.');
@@ -59,7 +63,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');

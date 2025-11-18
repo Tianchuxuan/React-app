@@ -1,17 +1,17 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://portfolio-blog-api-render.onrender.com', 
-  headers: { 'Content-Type': 'application/json' },
-  withCredentials: true,
+  baseURL: 'https://portfolio-blog-api-render.onrender.com',
 });
-
 
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    
+    if (!config.url.includes('manifest.json')) {
+      const token = localStorage.getItem('token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },
